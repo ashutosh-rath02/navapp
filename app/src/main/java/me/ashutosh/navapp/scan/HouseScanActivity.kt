@@ -15,7 +15,7 @@ class HouseScanActivity:Activity(){
  private val grid=OccupancyGrid(240,240,0.05f);private lateinit var gl:GLSurfaceView;private lateinit var renderer:HouseScanRenderer;private lateinit var status:TextView;private lateinit var map:MapView
  private var session:Session?=null;private var installRequested=false
  override fun onCreate(saved:Bundle?){super.onCreate(saved);val root=FrameLayout(this)
-  gl=GLSurfaceView(this).apply{preserveEGLContextOnPause=true;setEGLContextClientVersion(2);renderer=HouseScanRenderer(grid){m->runOnUiThread{status.text=m;map.invalidate()}};setRenderer(renderer);renderMode=GLSurfaceView.RENDERMODE_CONTINUOUSLY}
+  gl=GLSurfaceView(this).apply{preserveEGLContextOnPause=true;setEGLContextClientVersion(2);renderer=HouseScanRenderer(this@HouseScanActivity,grid){m->runOnUiThread{status.text=m;map.invalidate()}};setRenderer(renderer);renderMode=GLSurfaceView.RENDERMODE_CONTINUOUSLY}
   root.addView(gl,FrameLayout.LayoutParams(-1,-1));status=TextView(this).apply{text="Starting ARCore…";textSize=14f;setTextColor(Color.WHITE);setPadding(16,14,16,14);setBackgroundColor(0xAA101719.toInt())}
   root.addView(status,FrameLayout.LayoutParams(-1,-2,Gravity.TOP));map=MapView(this,grid);root.addView(map,FrameLayout.LayoutParams(180,180,Gravity.TOP or Gravity.END).apply{topMargin=64;rightMargin=10})
   val bar=LinearLayout(this).apply{gravity=Gravity.CENTER;setBackgroundColor(0xCC101719.toInt())}
