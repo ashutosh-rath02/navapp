@@ -12,13 +12,14 @@ import com.google.ar.core.*
 import me.ashutosh.navapp.mapping.OccupancyGrid
 import me.ashutosh.navapp.persistence.MapStore
 class HouseScanActivity:Activity(){
- private val grid=OccupancyGrid(400,400,0.05f);private lateinit var gl:GLSurfaceView;private lateinit var renderer:HouseScanRenderer;private lateinit var status:TextView;private lateinit var map:MapView
+ private val grid=OccupancyGrid(400,400,0.05f);private lateinit var gl:GLSurfaceView;private lateinit var renderer:HouseScanRenderer;private lateinit var status:TextView;private lateinit var map:MapView;private lateinit var cloudView:PointCloudView
  private var session:Session?=null;private var installRequested=false
  override fun onCreate(saved:Bundle?){super.onCreate(saved);val root=FrameLayout(this)
-  gl=GLSurfaceView(this).apply{preserveEGLContextOnPause=true;setEGLContextClientVersion(2);renderer=HouseScanRenderer(this@HouseScanActivity,grid){m->runOnUiThread{status.text=m;map.invalidate()}};setRenderer(renderer);renderMode=GLSurfaceView.RENDERMODE_CONTINUOUSLY}
-  root.addView(gl,FrameLayout.LayoutParams(-1,-1));status=TextView(this).apply{text="Starting ARCore…";textSize=14f;setTextColor(Color.WHITE);setPadding(16,14,16,14);setBackgroundColor(0xAA101719.toInt())}
+  gl=GLSurfaceView(this).apply{preserveEGLContextOnPause=true;setEGLContextClientVersion(2);renderer=HouseScanRenderer(this@HouseScanActivity,grid){m->runOnUiThread{status.text=m;map.invalidate();if(::cloudView.isInitialized)cloudView.invalidate()}};setRenderer(renderer);renderMode=GLSurfaceView.RENDERMODE_CONTINUOUSLY}
+  root.addView(gl,FrameLayout.LayoutParams(-1,-1));cloudView=PointCloudView(this){renderer.pointSnapshot()};cloudView.visibility=View.GONE;root.addView(cloudView,FrameLayout.LayoutParams(-1,-1));status=TextView(this).apply{text="Starting ARCore…";textSize=14f;setTextColor(Color.WHITE);setPadding(16,14,16,14);setBackgroundColor(0xAA101719.toInt())}
   root.addView(status,FrameLayout.LayoutParams(-1,-2,Gravity.TOP));map=MapView(this,grid);root.addView(map,FrameLayout.LayoutParams(180,180,Gravity.TOP or Gravity.END).apply{topMargin=64;rightMargin=10})
   val bar=LinearLayout(this).apply{gravity=Gravity.CENTER;setBackgroundColor(0xCC101719.toInt())}
+  bar.addView(Button(this).apply{text="3D View";setOnClickListener{cloudView.visibility=if(cloudView.visibility==View.VISIBLE)View.GONE else View.VISIBLE; text=if(cloudView.visibility==View.VISIBLE)"Camera" else "3D View";cloudView.invalidate()}})
   bar.addView(Button(this).apply{text="Pause";setOnClickListener{renderer.scanning=!renderer.scanning;text=if(renderer.scanning)"Pause" else "Resume"}})
   bar.addView(Button(this).apply{text="Save map";setOnClickListener{runCatching{MapStore.save(this@HouseScanActivity,grid);Toast.makeText(this@HouseScanActivity,"Map saved inside NavApp",Toast.LENGTH_LONG).show()}.onFailure{Toast.makeText(this@HouseScanActivity,it.message,Toast.LENGTH_LONG).show()}}})
   bar.addView(Button(this).apply{text="Reset";setOnClickListener{grid.clear();renderer.resetOrigin();map.invalidate();status.text="Reset · walk to begin a new scan"}})
