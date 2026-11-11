@@ -12,7 +12,7 @@ import com.google.ar.core.*
 import me.ashutosh.navapp.mapping.OccupancyGrid
 import me.ashutosh.navapp.persistence.MapStore
 class HouseScanActivity:Activity(){
- private val grid=OccupancyGrid(240,240,0.05f);private lateinit var gl:GLSurfaceView;private lateinit var renderer:HouseScanRenderer;private lateinit var status:TextView;private lateinit var map:MapView
+ private val grid=OccupancyGrid(400,400,0.05f);private lateinit var gl:GLSurfaceView;private lateinit var renderer:HouseScanRenderer;private lateinit var status:TextView;private lateinit var map:MapView
  private var session:Session?=null;private var installRequested=false
  override fun onCreate(saved:Bundle?){super.onCreate(saved);val root=FrameLayout(this)
   gl=GLSurfaceView(this).apply{preserveEGLContextOnPause=true;setEGLContextClientVersion(2);renderer=HouseScanRenderer(this@HouseScanActivity,grid){m->runOnUiThread{status.text=m;map.invalidate()}};setRenderer(renderer);renderMode=GLSurfaceView.RENDERMODE_CONTINUOUSLY}
