@@ -13,7 +13,7 @@ class HouseScanRenderer(private val activity:Activity,val grid:OccupancyGrid,pri
  private var texture=0;private var bound=false;private var viewW=0;private var viewH=0;private var geometrySet=false;private var program=0;private var pos=0;private var tex=0;private var sampler=0;private var origin:Pose?=null;private var last=0L;private var frames=0
  private val vertices=buf(floatArrayOf(-1f,-1f,1f,-1f,-1f,1f,1f,1f));private val uv=FloatArray(8)
  fun resetOrigin(){origin=null}
- override fun onSurfaceCreated(g:GL10?,c:EGLConfig?){val ids=IntArray(1);GLES20.glGenTextures(1,ids,0);texture=ids[0];GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,texture)
+ override fun onSurfaceCreated(g:GL10?,c:EGLConfig?){bound=false;val ids=IntArray(1);GLES20.glGenTextures(1,ids,0);texture=ids[0];GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,texture)
   GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,GLES20.GL_TEXTURE_MIN_FILTER,GLES20.GL_LINEAR);GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,GLES20.GL_TEXTURE_MAG_FILTER,GLES20.GL_LINEAR)
   GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,GLES20.GL_TEXTURE_WRAP_S,GLES20.GL_CLAMP_TO_EDGE);GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,GLES20.GL_TEXTURE_WRAP_T,GLES20.GL_CLAMP_TO_EDGE)
   program=makeProgram();pos=GLES20.glGetAttribLocation(program,"p");tex=GLES20.glGetAttribLocation(program,"t");sampler=GLES20.glGetUniformLocation(program,"s")}
