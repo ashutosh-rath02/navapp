@@ -2,7 +2,7 @@
 
 Independent Android app for the UGV Beast / OpenBot-derived platform. NavApp owns its camera, sensor access, mapping, UI and ESP32 connection; it does not require the OpenBot app or runtime.
 
-## Current implementation status — 0.2.0
+## Current implementation status — 0.3.0
 
 ### Implemented
 - Kotlin + Jetpack Compose Android application shell.
@@ -10,12 +10,14 @@ Independent Android app for the UGV Beast / OpenBot-derived platform. NavApp own
 - Independent ESP32 WebSocket adapter with conservative velocity clamps and stop command.
 - Phone accelerometer and gyroscope listener.
 - Log-odds 2D occupancy grid with ray integration, snapshots and map replacement.
-- ARCore DEPTH16 projection adapter: converts sampled metric depth pixels into occupancy rays when supplied with a valid camera pose and calibrated intrinsics.
+- Handheld ARCore scanning activity: starts an ARCore session, enables automatic depth, renders the live camera feed, tracks camera pose, samples DEPTH16, and accumulates a 2D occupancy grid while the user walks.
+- Depth-to-map projection uses ARCore camera intrinsics and tracked pose, with a provisional assumed phone height of 1.2 m to filter points by height.
 - Conservative 8-connected A* path preview; unknown and occupied cells are blocked, including diagonal corner-cutting prevention.
 - Versioned local map save/load.
 
 ### Not yet implemented / not safe to use for autonomy
-- ARCore session lifecycle and camera-frame/depth acquisition are **not wired into the app**.
+- No loop closure, global relocalization or drift correction; long walks may produce a warped or duplicated floor plan.
+- Floor height is estimated from the starting phone height (assumed 1.2 m), not measured from a detected floor plane; hold the phone around chest height and expect false hits/missed points until calibrated.
 - Visual-inertial pose estimation, relocalization and loop closure.
 - Camera-to-robot extrinsic calibration and camera pitch/height compensation.
 - Live depth mapping and map quality/confidence display.
@@ -23,7 +25,7 @@ Independent Android app for the UGV Beast / OpenBot-derived platform. NavApp own
 - ESP32 protocol validation against the actual firmware and hardware watchdog verification.
 - Instrumentation/device testing on the OnePlus Nord CE 3.
 
-The UI must not be interpreted as a functioning live SLAM system. The depth projector is an integration boundary, not a connected sensor pipeline. A* only previews a route through cells that have already been marked known-free by an upstream mapper.
+The handheld scanner is an early on-device prototype, not a production floor-plan scanner. It uses ARCore tracking and depth, but has no loop closure or drift correction and uses a rough floor-height assumption. Inspect the live map and expect imperfections. A* only previews a route through cells marked known-free by the mapper.
 
 ## Build
 
@@ -63,7 +65,10 @@ Default endpoint: `ws://192.168.4.1:81/`.
 
 ## Safety and staged validation
 
-1. Verify ESP32 IP, transport and JSON schema with motors physically disconnected or the UGV lifted.
+1. For house scanning, install Google Play Services for AR if prompted, start “Walk & Scan My House”, and move slowly around each room while sweeping the camera across walls and openings.
+2. Keep the phone roughly chest-height and avoid fast turns; pause if ARCore reports tracking loss.
+3. Save the map before leaving the scanner.
+4. For robot operation, verify ESP32 IP, transport and JSON schema with motors physically disconnected or the UGV lifted.
 2. Verify ESP32-side watchdog, motor limits and physical E-stop independently of NavApp.
 3. Validate camera and ARCore tracking/depth support on the target phone.
 4. Calibrate camera intrinsics and camera-to-robot transform; check map orientation with known measured distances.
