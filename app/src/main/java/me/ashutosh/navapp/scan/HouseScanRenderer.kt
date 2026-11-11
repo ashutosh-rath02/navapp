@@ -10,16 +10,16 @@ import javax.microedition.khronos.opengles.GL10
 import kotlin.math.abs
 class HouseScanRenderer(private val activity:Activity,val grid:OccupancyGrid,private val report:(String)->Unit):GLSurfaceView.Renderer{
  @Volatile var session:Session?=null;@Volatile var scanning=true
- private var texture=0;private var bound=false;private var program=0;private var pos=0;private var tex=0;private var sampler=0;private var origin:Pose?=null;private var last=0L;private var frames=0
+ private var texture=0;private var bound=false;private var viewW=0;private var viewH=0;private var geometrySet=false;private var program=0;private var pos=0;private var tex=0;private var sampler=0;private var origin:Pose?=null;private var last=0L;private var frames=0
  private val vertices=buf(floatArrayOf(-1f,-1f,1f,-1f,-1f,1f,1f,1f));private val uv=FloatArray(8)
  fun resetOrigin(){origin=null}
  override fun onSurfaceCreated(g:GL10?,c:EGLConfig?){val ids=IntArray(1);GLES20.glGenTextures(1,ids,0);texture=ids[0];GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,texture)
   GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,GLES20.GL_TEXTURE_MIN_FILTER,GLES20.GL_LINEAR);GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,GLES20.GL_TEXTURE_MAG_FILTER,GLES20.GL_LINEAR)
   GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,GLES20.GL_TEXTURE_WRAP_S,GLES20.GL_CLAMP_TO_EDGE);GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,GLES20.GL_TEXTURE_WRAP_T,GLES20.GL_CLAMP_TO_EDGE)
   program=makeProgram();pos=GLES20.glGetAttribLocation(program,"p");tex=GLES20.glGetAttribLocation(program,"t");sampler=GLES20.glGetUniformLocation(program,"s")}
- override fun onSurfaceChanged(g:GL10?,w:Int,h:Int){GLES20.glViewport(0,0,w,h);session?.setDisplayGeometry(activity.windowManager.defaultDisplay.rotation,w,h)}
+ override fun onSurfaceChanged(g:GL10?,w:Int,h:Int){GLES20.glViewport(0,0,w,h);viewW=w;viewH=h;geometrySet=false}
  override fun onDrawFrame(g:GL10?){val s=session?:run{GLES20.glClear(0x4000);return}
-  try{if(!bound){s.setCameraTextureName(texture);bound=true};val f=s.update();draw(f)
+  try{if(viewW>0&&viewH>0&&!geometrySet){s.setDisplayGeometry(activity.windowManager.defaultDisplay.rotation,viewW,viewH);geometrySet=true};if(!bound){s.setCameraTextureName(texture);bound=true};val f=s.update();draw(f)
    if(f.camera.trackingState!=TrackingState.TRACKING){report("Tracking state: "+f.camera.trackingState);return};frames++
    if(scanning&&SystemClock.elapsedRealtime()-last>180){mapFrame(f);last=SystemClock.elapsedRealtime()}
    if(frames%30==0)report((if(scanning)"Scanning" else "Paused")+" · "+frames+" frames")
@@ -28,12 +28,12 @@ class HouseScanRenderer(private val activity:Activity,val grid:OccupancyGrid,pri
   val image=try{f.acquireDepthImage16Bits()}catch(_:NotYetAvailableException){return}
   image.use{im->val pl=im.planes[0];val b=pl.buffer.duplicate().order(ByteOrder.LITTLE_ENDIAN);val intr=cam.imageIntrinsics
    val focal=FloatArray(2);val pp=FloatArray(2);val dims=IntArray(2);intr.getFocalLength(focal,0);intr.getPrincipalPoint(pp,0);intr.getImageDimensions(dims,0);if(focal[0]<=0f||focal[1]<=0f)return
-   val cp=o.inverse().transformPoint(cam.pose.translation);val floor=o.translation[1]-1.2f;val sx=dims[0].toFloat()/im.width;val sy=dims[1].toFloat()/im.height
+   val cp=cam.pose.translation;val floor=o.translation[1]-1.2f;val sx=dims[0].toFloat()/im.width;val sy=dims[1].toFloat()/im.height
    for(v in 8 until im.height step 8)for(u in 8 until im.width step 8){val off=v*pl.rowStride+u*pl.pixelStride;if(off+1>=b.limit())continue
     val mm=(b.getShort(off).toInt() and 0xffff) and 0x1fff;if(mm !in 180..4500)continue;val z=mm/1000f
     val x=(u*sx-pp[0])/focal[0]*z;val y=-(v*sy-pp[1])/focal[1]*z;val world=cam.pose.transformPoint(floatArrayOf(x,y,-z))
-    if(world[1]<floor+0.1f||world[1]>floor+2.4f)continue;val local=o.inverse().transformPoint(world);val mx=local[0];val my=-local[2]
-    if(abs(mx)<5.7f&&abs(my)<5.7f)grid.updateRay(cp[0],-cp[2],mx,my,true)
+    if(world[1]<floor+0.1f||world[1]>floor+2.4f)continue;val mx=world[0]-o.translation[0];val my=-(world[2]-o.translation[2])
+    if(abs(mx)<5.7f&&abs(my)<5.7f)grid.updateRay(cp[0]-o.translation[0],-(cp[2]-o.translation[2]),mx,my,true)
    }}
  }
  private fun draw(f:Frame){f.transformCoordinates2d(Coordinates2d.OPENGL_NORMALIZED_DEVICE_COORDINATES,floatArrayOf(-1f,-1f,1f,-1f,-1f,1f,1f,1f),Coordinates2d.TEXTURE_NORMALIZED,uv)
