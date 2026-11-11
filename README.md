@@ -11,13 +11,13 @@ Independent Android app for the UGV Beast / OpenBot-derived platform. NavApp own
 - Phone accelerometer and gyroscope listener.
 - Log-odds 2D occupancy grid with ray integration, snapshots and map replacement.
 - Handheld ARCore scanning activity: starts an ARCore session, enables automatic depth, renders the live camera feed, tracks camera pose, samples DEPTH16, and accumulates a 2D occupancy grid while the user walks.
-- Depth-to-map projection uses ARCore camera intrinsics and tracked pose, with a provisional assumed phone height of 1.2 m to filter points by height.
+- Depth-to-map projection uses ARCore camera intrinsics and tracked pose, with a provisional assumed phone height of 1.2 m to filter points by height. The current grid covers approximately 20 m × 20 m at 5 cm per cell.
 - Conservative 8-connected A* path preview; unknown and occupied cells are blocked, including diagonal corner-cutting prevention.
 - Versioned local map save/load.
 
 ### Not yet implemented / not safe to use for autonomy
 - No loop closure, global relocalization or drift correction; long walks may produce a warped or duplicated floor plan.
-- Floor height is estimated from the starting phone height (assumed 1.2 m), not measured from a detected floor plane; hold the phone around chest height and expect false hits/missed points until calibrated.
+- Floor height is estimated from the starting phone height (assumed 1.2 m), not measured from a detected floor plane; hold the phone around chest height and expect false hits/missed points until calibrated. The current 2D grid is about 20 m × 20 m; scan one floor at a time.
 - Visual-inertial pose estimation, relocalization and loop closure.
 - Camera-to-robot extrinsic calibration and camera pitch/height compensation.
 - Live depth mapping and map quality/confidence display.
