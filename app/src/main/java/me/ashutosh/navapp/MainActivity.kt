@@ -1,5 +1,7 @@
 package me.ashutosh.navapp
 
+import android.content.Intent
+import androidx.compose.ui.platform.LocalContext
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -49,6 +51,7 @@ class MainActivity : ComponentActivity(), RobotLink.Listener {
 }
 
 @Composable private fun NavScreen(connection: String, connected: Boolean, telemetry: String, mapMessage: String, grid: OccupancyGrid, route: List<AStarPlanner.Cell>, onConnect: (String,Int)->Unit, onDisconnect: ()->Unit, onStop: ()->Unit, onDrive: (Float,Float)->Unit, onMapTap: (Int,Int)->Unit, onSave: ()->Unit, onLoad: ()->Unit, onClear: ()->Unit) {
+    val context = LocalContext.current
     var host by remember { mutableStateOf("192.168.4.1") }; var port by remember { mutableStateOf("81") }
     Column(Modifier.fillMaxSize().background(Bg).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) { Text("NAV", color = Mint, style = MaterialTheme.typography.titleLarge); Spacer(Modifier.width(8.dp)); Text("/ FIELD MAPPER", color = Color.LightGray); Spacer(Modifier.weight(1f)); Text(if (connected) "ONLINE" else "OFFLINE", color = if (connected) Mint else Color.Gray) }
@@ -56,6 +59,8 @@ class MainActivity : ComponentActivity(), RobotLink.Listener {
             Box(Modifier.weight(1f).fillMaxHeight().background(Panel, RoundedCornerShape(12.dp))) { CameraPreview(Modifier.fillMaxSize()) }
             Box(Modifier.weight(1f).fillMaxHeight().background(Panel, RoundedCornerShape(12.dp)).padding(8.dp)) { OccupancyMap(grid, route, Modifier.fillMaxSize(), onMapTap) }
         }
+        Button(onClick = { context.startActivity(Intent(context, me.ashutosh.navapp.scan.HouseScanActivity::class.java)) }, modifier = Modifier.fillMaxWidth()) { Text("WALK & SCAN MY HOUSE") }
+        Text("Handheld ARCore depth scan · no robot connection needed", color = Color.Gray, style = MaterialTheme.typography.bodySmall)
         Text("MAP TOOLS", color = Mint, style = MaterialTheme.typography.labelLarge)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedButton(onClick = onSave) { Text("Save") }
