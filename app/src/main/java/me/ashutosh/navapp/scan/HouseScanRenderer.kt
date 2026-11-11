@@ -3,6 +3,7 @@ import android.app.Activity
 import android.opengl.*
 import android.os.SystemClock
 import com.google.ar.core.*
+import com.google.ar.core.exceptions.NotYetAvailableException
 import me.ashutosh.navapp.mapping.OccupancyGrid
 import java.nio.*
 import javax.microedition.khronos.egl.EGLConfig
