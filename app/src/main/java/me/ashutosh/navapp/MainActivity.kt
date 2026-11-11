@@ -89,7 +89,7 @@ class MainActivity : ComponentActivity(), RobotLink.Listener {
             DriveButton("↓", { onDrive(-0.10f, 0f) })
             Button(onClick = onStop, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF9C3434))) { Text("STOP") }
         }
-        Text("Live SLAM is not connected yet. This build does not generate a map from the camera; do not use it for autonomous motion.", color = Color.Gray, style = MaterialTheme.typography.bodySmall)
+        Text("House scanning is in the separate Walk & Scan mode. Robot navigation and autonomous driving are not enabled.", color = Color.Gray, style = MaterialTheme.typography.bodySmall)
     }
 }
 
