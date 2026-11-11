@@ -1,5 +1,5 @@
 package me.ashutosh.navapp.scan
-import android.content.Context
+import android.app.Activity
 import android.opengl.*
 import android.os.SystemClock
 import com.google.ar.core.*
@@ -8,7 +8,7 @@ import java.nio.*
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 import kotlin.math.abs
-class HouseScanRenderer(val grid:OccupancyGrid,private val report:(String)->Unit):GLSurfaceView.Renderer{
+class HouseScanRenderer(private val activity:Activity,val grid:OccupancyGrid,private val report:(String)->Unit):GLSurfaceView.Renderer{
  @Volatile var session:Session?=null;@Volatile var scanning=true
  private var texture=0;private var bound=false;private var program=0;private var pos=0;private var tex=0;private var sampler=0;private var origin:Pose?=null;private var last=0L;private var frames=0
  private val vertices=buf(floatArrayOf(-1f,-1f,1f,-1f,-1f,1f,1f,1f));private val uv=FloatArray(8)
@@ -17,7 +17,7 @@ class HouseScanRenderer(val grid:OccupancyGrid,private val report:(String)->Unit
   GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,GLES20.GL_TEXTURE_MIN_FILTER,GLES20.GL_LINEAR);GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,GLES20.GL_TEXTURE_MAG_FILTER,GLES20.GL_LINEAR)
   GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,GLES20.GL_TEXTURE_WRAP_S,GLES20.GL_CLAMP_TO_EDGE);GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,GLES20.GL_TEXTURE_WRAP_T,GLES20.GL_CLAMP_TO_EDGE)
   program=makeProgram();pos=GLES20.glGetAttribLocation(program,"p");tex=GLES20.glGetAttribLocation(program,"t");sampler=GLES20.glGetUniformLocation(program,"s")}
- override fun onSurfaceChanged(g:GL10?,w:Int,h:Int){GLES20.glViewport(0,0,w,h)}
+ override fun onSurfaceChanged(g:GL10?,w:Int,h:Int){GLES20.glViewport(0,0,w,h);session?.setDisplayGeometry(activity.windowManager.defaultDisplay.rotation,w,h)}
  override fun onDrawFrame(g:GL10?){val s=session?:run{GLES20.glClear(0x4000);return}
   try{if(!bound){s.setCameraTextureName(texture);bound=true};val f=s.update();draw(f)
    if(f.camera.trackingState!=TrackingState.TRACKING){report("Tracking state: "+f.camera.trackingState);return};frames++
