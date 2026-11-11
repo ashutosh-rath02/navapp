@@ -34,7 +34,7 @@ class HouseScanRenderer(private val activity:Activity,val grid:OccupancyGrid,pri
     val mm=(b.getShort(off).toInt() and 0xffff) and 0x1fff;if(mm !in 180..4500)continue;val z=mm/1000f
     val x=(u*sx-pp[0])/focal[0]*z;val y=-(v*sy-pp[1])/focal[1]*z;val world=cam.pose.transformPoint(floatArrayOf(x,y,-z))
     if(world[1]<floor+0.1f||world[1]>floor+2.4f)continue;val mx=world[0]-o.translation[0];val my=-(world[2]-o.translation[2])
-    if(abs(mx)<5.7f&&abs(my)<5.7f)grid.updateRay(cp[0]-o.translation[0],-(cp[2]-o.translation[2]),mx,my,true)
+    if(abs(mx)<9.7f&&abs(my)<9.7f)grid.updateRay(cp[0]-o.translation[0],-(cp[2]-o.translation[2]),mx,my,true)
    }}
  }
  private fun draw(f:Frame){f.transformCoordinates2d(Coordinates2d.OPENGL_NORMALIZED_DEVICE_COORDINATES,floatArrayOf(-1f,-1f,1f,-1f,-1f,1f,1f,1f),Coordinates2d.TEXTURE_NORMALIZED,uv)
